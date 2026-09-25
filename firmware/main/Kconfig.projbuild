@@ -15,7 +15,7 @@ menu "Xiaozhi Assistant"
 
 config OTA_URL
     string "Default OTA URL"
-    default "https://api.tenclass.net/xiaozhi/ota/"
+    default "https://zeroscope.cn/hr-atbot/channel/presence/ota"
     help
         The application will access this URL to check for new firmwares and server address.
 

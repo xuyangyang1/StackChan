@@ -51,10 +51,20 @@ def fetch_dependencies():
         repo_path = os.path.join(script_dir, repo["path"])
         branch = repo.get("branch")
         with_submodules = repo.get("with_submodules", False)
-        patch = repo.get("patch")
-        if patch and not os.path.isabs(patch):
-            patch = os.path.join(script_dir, patch)
-        clone_or_update_repo(repo["url"], repo_path, branch, with_submodules, patch)
+        patches = repo.get("patches")
+        if patches is None and repo.get("patch"):
+            patches = [repo.get("patch")]
+        first_patch = None
+        extra_patches = []
+        if patches:
+            first_patch = patches[0]
+            extra_patches = patches[1:]
+        if first_patch and not os.path.isabs(first_patch):
+            first_patch = os.path.join(script_dir, first_patch)
+        clone_or_update_repo(repo["url"], repo_path, branch, with_submodules, first_patch)
+        for patch in extra_patches:
+            patch_path = patch if os.path.isabs(patch) else os.path.join(script_dir, patch)
+            clone_or_update_repo(repo["url"], repo_path, None, False, patch_path)
 
 
 if __name__ == "__main__":

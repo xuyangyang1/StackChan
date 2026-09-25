@@ -1,0 +1,39 @@
+diff --git a/main/application.cc b/main/application.cc
+--- a/main/application.cc
++++ b/main/application.cc
+@@ -432,11 +432,11 @@ void Application::CheckNewVersion() {
+         retry_count = 0;
+         retry_delay = 10; // Reset retry delay
+ 
+         if (ota_->HasNewVersion()) {
+-            if (UpgradeFirmware(ota_->GetFirmwareUrl(), ota_->GetFirmwareVersion())) {
+-                return; // This line will never be reached after reboot
+-            }
+-            // If upgrade failed, continue to normal operation
++            // ZeroScope presence: CheckNewVersion stays for websocket discovery;
++            // UpgradeFirmware is closed so empty or foreign firmware.url cannot flash.
++            ESP_LOGW(TAG, "firmware upgrade disabled, ignore version=%s url=%s",
++                     ota_->GetFirmwareVersion().c_str(), ota_->GetFirmwareUrl().c_str());
+         }
+ 
+         // No new version, mark the current version as valid
+diff --git a/main/ota.cc b/main/ota.cc
+--- a/main/ota.cc
++++ b/main/ota.cc
+@@ -43,13 +43,22 @@ Ota::Ota() {
+ Ota::~Ota() {
+ }
+ 
+ std::string Ota::GetCheckVersionUrl() {
+     Settings settings("wifi", false);
+     std::string url = settings.GetString("ota_url");
+-    if (url.empty()) {
++    if (url.empty() || url.find("tenclass.net") != std::string::npos
++        || url.find("xiaozhi.me") != std::string::npos
++        || url.find("/hr-atbot/channel/presence/ota") == std::string::npos) {
+         url = CONFIG_OTA_URL;
+     }
+     return url;
+ }
+ 
+ std::unique_ptr<Http> Ota::SetupHttp() {
