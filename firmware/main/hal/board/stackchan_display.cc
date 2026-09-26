@@ -17,6 +17,7 @@
 #include <stackchan/stackchan.h>
 #include <assets/lang_config.h>
 #include <hal/hal.h>
+#include "presence_body.h"
 
 using namespace stackchan;
 using namespace stackchan::avatar;
@@ -252,7 +253,7 @@ void StackChanAvatarDisplay::SetupUI()
     ESP_LOGI(TAG, "Creating Stack-chan Avatar...");
 
     auto avatar = std::make_unique<DefaultAvatar>();
-    avatar->init(lv_screen_active());
+    avatar->init(lv_screen_active(), &BUILTIN_TEXT_FONT);
     avatar->getPanel()->onClick().connect([]() {
         static uint32_t last_toggle_tick = 0;
         const uint32_t now               = GetHAL().millis();
@@ -393,10 +394,10 @@ void StackChanAvatarDisplay::SetChatMessage(const char* role, const char* conten
 
     DisplayLockGuard lock(this);
 
-    if (strcmp(role, "system") == 0) {
-        stackchan.avatar().setSpeech(content);
-    } else if (strcmp(role, "assistant") == 0) {
-        stackchan.avatar().setSpeech(content);
+    const char* shown = presence_display_speech(content);
+    stackchan.avatar().setSpeechTextFont((void*)&BUILTIN_TEXT_FONT);
+    if (strcmp(role, "system") == 0 || strcmp(role, "assistant") == 0) {
+        stackchan.avatar().setSpeech(shown);
     }
 }
 
@@ -529,7 +530,8 @@ void StackChanAvatarDisplay::SetStatus(const char* status)
         GetHAL().setRgbColor(0, 0, 0, 50);
         GetHAL().refreshRgb();
     } else {
-        avatar.setSpeech(status);
+        avatar.setSpeechTextFont((void*)&BUILTIN_TEXT_FONT);
+        avatar.setSpeech(presence_display_speech(status));
     }
 
     if (is_idle) {

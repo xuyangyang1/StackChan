@@ -11,6 +11,7 @@
 #include <mooncake_log.h>
 #include <hal/hal.h>
 #include <memory>
+#include "presence_body.h"
 
 using namespace smooth_ui_toolkit::lvgl_cpp;
 using namespace setup_workers;
@@ -26,7 +27,7 @@ WifiSetupWorker::WifiSetupWorker()
 
     // Create default avatar
     auto avatar = std::make_unique<avatar::DefaultAvatar>();
-    avatar->init(lv_screen_active(), &lv_font_montserrat_24);
+    avatar->init(lv_screen_active(), &BUILTIN_TEXT_FONT);
     avatar->leftEye().setVisible(false);
     avatar->rightEye().setVisible(false);
     avatar->mouth().setVisible(false);
@@ -62,61 +63,35 @@ void WifiSetupWorker::update_state()
                 data.panel->setRadius(0);
 
                 data.title = std::make_unique<Label>(lv_screen_active());
-                data.title->setTextFont(&lv_font_montserrat_20);
+                data.title->setTextFont(&BUILTIN_TEXT_FONT);
                 data.title->setTextColor(lv_color_hex(0x7E7B9C));
-                data.title->align(LV_ALIGN_TOP_MID, 0, 0);
-                data.title->setText("APP SETUP");
+                data.title->setWidth(280);
+                data.title->setTextAlign(LV_TEXT_ALIGN_CENTER);
+                data.title->align(LV_ALIGN_TOP_MID, 0, 20);
+                data.title->setText(presence_activation_title());
 
                 data.info = std::make_unique<Label>(lv_screen_active());
-                data.info->setTextFont(&lv_font_montserrat_14);
+                data.info->setTextFont(&BUILTIN_TEXT_FONT);
                 data.info->setTextColor(lv_color_hex(0x26206A));
-                data.info->align(LV_ALIGN_TOP_MID, 0, 27);
+                data.info->setWidth(280);
                 data.info->setTextAlign(LV_TEXT_ALIGN_CENTER);
-                data.info->setText("Install \"StackChan World\" app\nand login to your M5Stack account");
-
-                std::string qrcode_text = "https://apps.apple.com/us/app/stackchan-world/id6756086326";
-                data.qrcode_ios         = std::make_unique<Qrcode>(lv_screen_active());
-                data.qrcode_ios->setSize(80);
-                data.qrcode_ios->setDarkColor(lv_color_hex(0x221C5B));
-                data.qrcode_ios->setLightColor(lv_color_hex(0xEDF4FF));
-                data.qrcode_ios->update(qrcode_text);
-                data.qrcode_ios->align(LV_ALIGN_CENTER, -65, -12);
-
-                qrcode_text         = "https://play.google.com/store/apps/details?id=com.m5stack.stackchan";
-                data.qrcode_android = std::make_unique<Qrcode>(lv_screen_active());
-                data.qrcode_android->setSize(80);
-                data.qrcode_android->setDarkColor(lv_color_hex(0x221C5B));
-                data.qrcode_android->setLightColor(lv_color_hex(0xEDF4FF));
-                data.qrcode_android->update(qrcode_text);
-                data.qrcode_android->align(LV_ALIGN_CENTER, 65, -12);
-
-                data.label_ios = std::make_unique<Label>(lv_screen_active());
-                data.label_ios->setTextFont(&lv_font_montserrat_14);
-                data.label_ios->setTextColor(lv_color_hex(0x26206A));
-                data.label_ios->align(LV_ALIGN_CENTER, -65, 47);
-                data.label_ios->setText("App Store\n(iOS)");
-                data.label_ios->setTextAlign(LV_TEXT_ALIGN_CENTER);
-
-                data.label_android = std::make_unique<Label>(lv_screen_active());
-                data.label_android->setTextFont(&lv_font_montserrat_14);
-                data.label_android->setTextColor(lv_color_hex(0x26206A));
-                data.label_android->align(LV_ALIGN_CENTER, 65, 47);
-                data.label_android->setText("Play Store\n(Android)");
-                data.label_android->setTextAlign(LV_TEXT_ALIGN_CENTER);
+                data.info->align(LV_ALIGN_TOP_MID, 0, 56);
+                data.info->setLongMode(LV_LABEL_LONG_MODE_WRAP);
+                data.info->setText(presence_setup_wifi_intro());
 
                 data.btn_next = std::make_unique<Button>(lv_screen_active());
                 apply_button_common_style(*data.btn_next);
-                data.btn_next->align(LV_ALIGN_CENTER, 72, 91);
-                data.btn_next->setSize(112, 42);
-                data.btn_next->label().setText("Next");
+                data.btn_next->align(LV_ALIGN_BOTTOM_MID, 72, -18);
+                data.btn_next->setSize(124, 44);
+                data.btn_next->label().setText("下一步");
                 data.btn_next->onClick().connect([this]() { _state_app_download_data.next_clicked = true; });
 
                 data.btn_quit = std::make_unique<Button>(lv_screen_active());
                 apply_button_common_style(*data.btn_quit);
-                data.btn_quit->align(LV_ALIGN_CENTER, -72, 91);
-                data.btn_quit->setSize(112, 42);
+                data.btn_quit->align(LV_ALIGN_BOTTOM_MID, -72, -18);
+                data.btn_quit->setSize(124, 44);
                 data.btn_quit->setBgColor(lv_color_hex(0xD4D9E0));
-                data.btn_quit->label().setText("Back");
+                data.btn_quit->label().setText("返回");
                 data.btn_quit->label().setTextColor(lv_color_hex(0x525064));
                 data.btn_quit->onClick().connect([this]() { _state_app_download_data.quit_clicked = true; });
             }
@@ -170,11 +145,13 @@ void WifiSetupWorker::update_state()
                 data.btn_id->label().setText(fmt::format("ID: {}", GetHAL().getFactoryMacString()));
 
                 data.info = std::make_unique<Label>(lv_screen_active());
-                data.info->setTextFont(&lv_font_montserrat_24);
+                data.info->setTextFont(&BUILTIN_TEXT_FONT);
                 data.info->setTextColor(lv_color_hex(0x26206A));
-                data.info->align(LV_ALIGN_BOTTOM_MID, 0, -26);
+                data.info->setWidth(280);
+                data.info->setLongMode(LV_LABEL_LONG_MODE_WRAP);
+                data.info->align(LV_ALIGN_BOTTOM_MID, 0, -22);
                 data.info->setTextAlign(LV_TEXT_ALIGN_CENTER);
-                data.info->setText("Look for me in the app\nto start setup.");
+                data.info->setText(presence_setup_look_for_me());
 
                 auto& avatar = GetStackChan().avatar();
                 avatar.clearDecorators();
@@ -199,7 +176,7 @@ void WifiSetupWorker::update_state()
                 avatar.leftEye().setVisible(true);
                 avatar.rightEye().setVisible(true);
                 avatar.mouth().setVisible(true);
-                avatar.setSpeech("Ready to Configure ~");
+                avatar.setSpeech("可以开始配置了");
 
                 GetStackChan().addModifier(std::make_unique<TimedEmotionModifier>(avatar::Emotion::Happy, 4000));
                 GetStackChan().addModifier(std::make_unique<BreathModifier>());
@@ -213,12 +190,12 @@ void WifiSetupWorker::update_state()
                     switch_state(State::WaitAppConnection);
                 } else if (_last_app_config_event == AppConfigEvent::TryWifiConnect) {
                     auto& avatar = GetStackChan().avatar();
-                    avatar.setSpeech("Verifying...");
+                    avatar.setSpeech("正在验证…");
                     GetStackChan().addModifier(std::make_unique<SpeakingModifier>(2000, 180, false));
                 } else if (_last_app_config_event == AppConfigEvent::WifiConnectFailed) {
                     GetStackChan().addModifier(std::make_unique<TimedEmotionModifier>(avatar::Emotion::Sad, 4000));
                     GetStackChan().addModifier(
-                        std::make_unique<TimedSpeechModifier>("Connect Failed. Try again?", 6000));
+                        std::make_unique<TimedSpeechModifier>("连接失败，请重试", 6000));
                     GetStackChan().addModifier(std::make_unique<SpeakingModifier>(3000, 180, false));
                 } else if (_last_app_config_event == AppConfigEvent::WifiConnected) {
                     switch_state(State::Done);
@@ -248,7 +225,7 @@ void WifiSetupWorker::update_state()
                 if (_state_done_data.reboot_count > 0) {
                     _state_done_data.reboot_count--;
                     auto& avatar = GetStackChan().avatar();
-                    avatar.setSpeech(fmt::format("Done!  Reboot in {}s.", _state_done_data.reboot_count));
+                    avatar.setSpeech(fmt::format("完成！{} 秒后重启", _state_done_data.reboot_count));
                 } else {
                     mclog::tagInfo(_tag, "rebooting...");
                     GetHAL().delay(100);

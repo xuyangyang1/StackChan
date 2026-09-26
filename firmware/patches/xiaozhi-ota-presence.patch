@@ -17,6 +17,15 @@ diff --git a/main/application.cc b/main/application.cc
          }
  
          // No new version, mark the current version as valid
+@@ -639,7 +639,7 @@ void Application::ShowActivationCode(const std::string& code, const std::string&
+     // }
+ 
+     auto display = Board::GetInstance().GetDisplay();
+-    display->SetChatMessage("system", "Please bind and set up in the mobile app.");
++    display->SetChatMessage("system", "请到商户端绑定\n填写设备 ID");
+ }
+ 
+ void Application::Alert(const char* status, const char* message, const char* emotion, const std::string_view& sound) {
 diff --git a/main/ota.cc b/main/ota.cc
 --- a/main/ota.cc
 +++ b/main/ota.cc

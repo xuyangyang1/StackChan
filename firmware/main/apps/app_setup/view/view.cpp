@@ -5,6 +5,8 @@
  */
 #include "view.h"
 
+LV_FONT_DECLARE(BUILTIN_TEXT_FONT);
+
 using namespace view;
 using namespace uitk::lvgl_cpp;
 
@@ -13,7 +15,7 @@ SelectMenuPage::SelectMenuPage(std::vector<MenuSection> sections) : _sections(st
     _pannel = std::make_unique<uitk::lvgl_cpp::Container>(lv_screen_active());
     _pannel->setSize(320, 240);
     _pannel->setBgColor(lv_color_hex(0xEDF4FF));
-    _pannel->setPadding(30, 72, 0, 0);
+    _pannel->setPadding(24, 64, 16, 16);
     _pannel->setBorderWidth(0);
     _pannel->setRadius(0);
     _pannel->setScrollDir(LV_DIR_VER);
@@ -29,7 +31,7 @@ SelectMenuPage::SelectMenuPage(std::vector<MenuSection> sections) : _sections(st
         for (int j = 0; j < section.items.size(); ++j) {
             const auto& item = section.items[j];
             create_item_button(cursor_y, item, i, j);
-            cursor_y += 48 + 12;
+            cursor_y += 52 + 12;
         }
         cursor_y += 8;
     }
@@ -57,8 +59,10 @@ void SelectMenuPage::create_selection_label(int x, int y, std::string_view text)
 {
     auto label = std::make_unique<uitk::lvgl_cpp::Label>(*_pannel);
     label->setText(text);
-    label->setTextFont(&lv_font_montserrat_16);
+    label->setTextFont(&BUILTIN_TEXT_FONT);
     label->setTextColor(lv_color_hex(0x6A6882));
+    label->setWidth(260);
+    label->setTextAlign(LV_TEXT_ALIGN_LEFT);
     label->setPos(x, y);
     _labels.push_back(std::move(label));
 }
@@ -66,20 +70,20 @@ void SelectMenuPage::create_selection_label(int x, int y, std::string_view text)
 void SelectMenuPage::create_item_button(int y, const MenuItem& item, int section_idx, int item_idx)
 {
     auto btn = std::make_unique<uitk::lvgl_cpp::Button>(*_pannel);
-    btn->setSize(282, 48);
+    btn->setSize(280, 52);
     btn->align(LV_ALIGN_TOP_MID, 0, y);
     btn->setBgColor(lv_color_hex(0xB8D3FD));
     btn->setBorderWidth(0);
     btn->setShadowWidth(0);
-    btn->setRadius(18);
+    btn->setRadius(16);
 
     btn->label().setText(item.label);
-    btn->label().setTextFont(&lv_font_montserrat_24);
+    btn->label().setTextFont(&BUILTIN_TEXT_FONT);
     btn->label().setTextColor(lv_color_hex(0x26206A));
     btn->label().align(LV_ALIGN_CENTER, 0, 0);
-    btn->label().setWidth(256);
+    btn->label().setWidth(248);
     btn->label().setTextAlign(LV_TEXT_ALIGN_CENTER);
-    btn->label().setLongMode(LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+    btn->label().setLongMode(LV_LABEL_LONG_MODE_WRAP);
 
     if (item.onClick) {
         btn->onClick().connect([this, section_idx, item_idx]() {

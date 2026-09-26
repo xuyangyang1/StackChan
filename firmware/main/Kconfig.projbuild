@@ -19,6 +19,13 @@ config OTA_URL
     help
         The application will access this URL to check for new firmwares and server address.
 
+config PRESENCE_WS_URL
+    string "Presence WebSocket URL override"
+    default ""
+    help
+        If non-empty, the device connects here instead of websocket.url from OTA.
+        Use sdkconfig.defaults.local for a LAN Channel, e.g. ws://192.168.x.x:8090/hr-atbot/channel/presence/ws.
+
 choice
     prompt "Flash Assets"
     default FLASH_DEFAULT_ASSETS if !USE_EMOTE_MESSAGE_STYLE

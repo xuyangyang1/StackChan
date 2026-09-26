@@ -10,6 +10,7 @@
 #include <assets/assets.h>
 #include <stackchan/stackchan.h>
 #include <apps/common/common.h>
+#include "presence_body.h"
 
 using namespace mooncake;
 using namespace view;
@@ -18,7 +19,7 @@ using namespace setup_workers;
 AppSetup::AppSetup()
 {
     // 配置 App 名
-    setAppInfo().name = "SETUP";
+    setAppInfo().name = "设置";
     // 配置 App 图标
     static auto icon  = assets::get_image("icon_setup.bin");
     setAppInfo().icon = (void*)&icon;
@@ -44,8 +45,8 @@ void AppSetup::onOpen()
 
     _menu_sections = {
         {
-            "Wi-Fi",
-            {{"Change Wi-Fi",
+            "无线网络",
+            {{"更换 Wi-Fi",
               [&]() {
                   _destroy_menu    = true;
                   _need_warm_reset = true;
@@ -53,18 +54,18 @@ void AppSetup::onOpen()
               }}},
         },
         {
-            "Device",
-            {{"Brightness",
+            "设备",
+            {{"亮度",
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<BrightnessSetupWorker>();
               }},
-             {"Volume",
+             {"音量",
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<VolumeSetupWorker>();
               }},
-             {"Timezone",
+             {"时区",
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<TimezoneWorker>();
@@ -86,18 +87,18 @@ void AppSetup::onOpen()
               }}},
         },
         {
-            "Hardware Test",
-            {{"Servo",
+            "硬件检测",
+            {{"舵机",
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<ZeroCalibrationWorker>();
               }},
-             {"Microphone",
+             {"麦克风",
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<MicTestWorker>();
               }},
-             {"RGB Strip",
+             {"灯带",
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<RgbTestWorker>();
@@ -113,9 +114,9 @@ void AppSetup::onOpen()
               }}},
         },
         {
-            "Firmware",
+            "固件",
             {
-                {fmt::format("Version:  {}", common::FirmwareVersion),
+                {fmt::format("版本  {}", common::FirmwareVersion),
                  [&]() {
                      _magic_count++;
                      if (_magic_count >= 10) {
@@ -138,6 +139,26 @@ void AppSetup::onOpen()
             },
         },
     };
+
+    {
+        std::vector<view::SelectMenuPage::MenuSection> kept;
+        for (auto& section : _menu_sections) {
+            if (!presence_setup_section_allowed(section.title.c_str())) {
+                continue;
+            }
+            view::SelectMenuPage::MenuSection filtered;
+            filtered.title = section.title;
+            for (auto& item : section.items) {
+                if (presence_setup_item_allowed(item.label.c_str())) {
+                    filtered.items.push_back(std::move(item));
+                }
+            }
+            if (!filtered.items.empty()) {
+                kept.push_back(std::move(filtered));
+            }
+        }
+        _menu_sections = std::move(kept);
+    }
 
     LvglLockGuard lock;
 

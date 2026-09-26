@@ -9,6 +9,7 @@
 #include <mooncake.h>
 #include <apps/apps.h>
 #include <hal/hal.h>
+#include "presence_body.h"
 
 using namespace mooncake;
 using namespace smooth_ui_toolkit;
@@ -32,13 +33,12 @@ extern "C" void app_main(void)
     if (!skip_mooncake) {
         // Install apps
         GetMooncake().installApp(std::make_unique<AppLauncher>());
-        GetMooncake().installApp(std::make_unique<AppAiAgent>());
-        GetMooncake().installApp(std::make_unique<AppAvatar>());
-        GetMooncake().installApp(std::make_unique<AppEspnowControl>());
-        GetMooncake().installApp(std::make_unique<AppAppCenter>());
-        GetMooncake().installApp(std::make_unique<AppEzdata>());
-        GetMooncake().installApp(std::make_unique<AppDance>());
-        GetMooncake().installApp(std::make_unique<AppSetup>());
+        if (presence_install_app("AI.AGENT")) {
+            GetMooncake().installApp(std::make_unique<AppAiAgent>());
+        }
+        if (presence_install_app("SETUP")) {
+            GetMooncake().installApp(std::make_unique<AppSetup>());
+        }
 
         // Main loop
         while (1) {

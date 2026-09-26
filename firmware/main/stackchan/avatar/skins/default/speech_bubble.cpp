@@ -4,20 +4,11 @@
  * SPDX-License-Identifier: MIT
  */
 #include "default.h"
+#include "presence_body.h"
 
 using namespace uitk;
 using namespace uitk::lvgl_cpp;
 using namespace stackchan::avatar;
-
-static const Vector2i _container_pos  = Vector2i(0, 89);
-static const Vector2i _container_size = Vector2i(320, 74);
-static const Vector2i _arrow_offset   = Vector2i(40, -15);
-static const int _text_mx             = 20;
-static const int _bubble_min_width    = 90;
-static const int _bubble_max_width    = 340;
-static const int _bubble_height       = 52;
-static const int _bubble_min_offset_x = 66;
-static const int _bubble_max_offset_x = 0;
 
 LV_IMAGE_DECLARE(default_bubble_arrow);
 
@@ -30,25 +21,28 @@ DefaultSpeechBubble::DefaultSpeechBubble(lv_obj_t* parent, lv_color_t primaryCol
     _container->setBorderWidth(0);
     _container->setBgOpa(0);
     _container->removeFlag(LV_OBJ_FLAG_SCROLLABLE);
-    _container->setSize(_container_size.x, _container_size.y);
-    _container->setPos(_container_pos.x, _container_pos.y);
+    _container->setSize(320, presence_speech_container_h());
+    _container->setPos(0, presence_speech_container_y());
     _container->setPadding(0, 0, 0, 0);
 
     _arrow = std::make_unique<Image>(_container->get());
     _arrow->setSrc(&default_bubble_arrow);
-    _arrow->setAlign(LV_ALIGN_CENTER);
-    _arrow->setPos(_arrow_offset.x, _arrow_offset.y);
+    _arrow->setAlign(LV_ALIGN_TOP_MID);
+    _arrow->setPos(0, 0);
     _arrow->setImageRecolorOpa(LV_OPA_COVER);
     _arrow->setImageRecolor(primaryColor);
+    _arrow->setHidden(!presence_speech_show_arrow());
 
     _bubble = std::make_unique<Container>(_container->get());
-    _bubble->setRadius(LV_RADIUS_CIRCLE);
+    _bubble->setRadius(presence_speech_radius());
     _bubble->setAlign(LV_ALIGN_CENTER);
     _bubble->setBorderWidth(0);
     _bubble->setBgColor(primaryColor);
     _bubble->removeFlag(LV_OBJ_FLAG_SCROLLABLE);
-    _bubble->setSize(_bubble_max_width, _bubble_height);
-    _bubble->setPos(0, 11);
+    _bubble->setSize(presence_speech_max_width(), presence_speech_bubble_height());
+    _bubble->setPos(0, presence_speech_show_arrow() ? 8 : 0);
+    _bubble->setPadding(presence_speech_pad_y(), presence_speech_pad_y(), presence_speech_pad_x(),
+                        presence_speech_pad_x());
 
     _text = std::make_unique<Label>(_bubble->get());
     _text->setTextColor(secondaryColor);
@@ -56,8 +50,9 @@ DefaultSpeechBubble::DefaultSpeechBubble(lv_obj_t* parent, lv_color_t primaryCol
     _text->setTextAlign(LV_TEXT_ALIGN_CENTER);
     _text->setAlign(LV_ALIGN_CENTER);
     _text->setPos(0, 0);
-    _text->setWidth(320 - _text_mx * 2);
-    _text->setLongMode(LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+    _text->setWidth(presence_speech_max_width() - presence_speech_pad_x() * 2);
+    _text->setHeight(presence_speech_bubble_height() - presence_speech_pad_y() * 2);
+    _text->setLongMode(presence_speech_wrap() ? LV_LABEL_LONG_MODE_WRAP : LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
 
     clearSpeech();
 }
@@ -78,19 +73,15 @@ void DefaultSpeechBubble::setSpeech(std::string_view text)
     }
 
     _text->setText(text);
-
-    lv_point_t text_size;
-    lv_text_get_size(&text_size, text.data(), _text->getTextFont(), 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
-
-    int bubble_width = min(text_size.x + _text_mx * 2, _bubble_max_width);
-    bubble_width     = max(bubble_width, _bubble_min_width);
-
-    auto bubble_offset_x =
-        map_range(bubble_width, _bubble_min_width, _bubble_max_width, _bubble_min_offset_x, _bubble_max_offset_x);
-
-    _bubble->setWidth(bubble_width);
-    _bubble->setX(bubble_offset_x);
-
+    const int pad_x = presence_speech_pad_x();
+    const int pad_y = presence_speech_pad_y();
+    const int width = presence_speech_fixed_card() ? presence_speech_max_width() : presence_speech_max_width();
+    _bubble->setSize(width, presence_speech_bubble_height());
+    _bubble->setX(0);
+    _text->setWidth(width - pad_x * 2);
+    _text->setHeight(presence_speech_bubble_height() - pad_y * 2);
+    _text->setTextAlign(LV_TEXT_ALIGN_CENTER);
+    _text->setAlign(LV_ALIGN_CENTER);
     setVisible(true);
 }
 

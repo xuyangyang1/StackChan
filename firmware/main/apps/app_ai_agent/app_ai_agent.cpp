@@ -11,6 +11,7 @@
 #include <smooth_lvgl.hpp>
 #include <stackchan/stackchan.h>
 #include <apps/common/common.h>
+#include "presence_body.h"
 
 using namespace mooncake;
 using namespace smooth_ui_toolkit::lvgl_cpp;
@@ -18,9 +19,9 @@ using namespace smooth_ui_toolkit::lvgl_cpp;
 AppAiAgent::AppAiAgent()
 {
     // Configure App name
-    setAppInfo().name = "AI.AGENT";
+    setAppInfo().name = presence_launcher_name();
     // Configure App icon
-    static auto icon  = assets::get_image("icon_ai_agent.bin");
+    static auto icon  = assets::get_image(presence_launcher_icon());
     setAppInfo().icon = (void*)&icon;
     // Configure App theme color
     static uint32_t theme_color = 0x33CC99;
