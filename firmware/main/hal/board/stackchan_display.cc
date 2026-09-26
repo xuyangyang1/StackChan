@@ -380,6 +380,11 @@ void StackChanAvatarDisplay::SetEmotion(const char* emotion)
 
 void StackChanAvatarDisplay::SetChatMessage(const char* role, const char* content)
 {
+    if (role == nullptr || content == nullptr) {
+        ESP_LOGW(TAG, "Ignoring chat message with a null role or content");
+        return;
+    }
+
     if (!setup_ui_called_) {
         ESP_LOGW(TAG, "SetChatMessage('%s', '%s') called before SetupUI() - message will be lost!", role, content);
     }
@@ -393,9 +398,10 @@ void StackChanAvatarDisplay::SetChatMessage(const char* role, const char* conten
 
     DisplayLockGuard lock(this);
 
-    if (strcmp(role, "system") == 0) {
-        stackchan.avatar().setSpeech(content);
-    } else if (strcmp(role, "assistant") == 0) {
+    // User ASR arrives on the same display API but is not robot speech. Keep
+    // assistant captions aligned with TTS while still allowing setup/system
+    // notices that have no audio equivalent.
+    if (strcmp(role, "assistant") == 0 || strcmp(role, "system") == 0) {
         stackchan.avatar().setSpeech(content);
     }
 }
@@ -481,6 +487,11 @@ void StackChanAvatarDisplay::SetStatus(const char* status)
 {
     // ESP_LOGE(TAG, "SetStatus: %s", status);
 
+    if (status == nullptr) {
+        ESP_LOGW(TAG, "Ignoring null status");
+        return;
+    }
+
     auto& stackchan = GetStackChan();
     if (!stackchan.hasAvatar()) {
         ESP_LOGE(TAG, "Avatar is invalid");
@@ -496,6 +507,10 @@ void StackChanAvatarDisplay::SetStatus(const char* status)
     bool is_listening = false;
 
     if (strcmp(status, Lang::Strings::LISTENING) == 0) {
+        // Do not leave the previous answer visible while the next utterance is
+        // being recognised. The next assistant TTS message owns the bubble.
+        avatar.clearSpeech();
+
         if (speaking_modifier_id_ >= 0) {
             // Start speaking
             stackchan.removeModifier(speaking_modifier_id_);
@@ -528,8 +543,6 @@ void StackChanAvatarDisplay::SetStatus(const char* status)
 
         GetHAL().setRgbColor(0, 0, 0, 50);
         GetHAL().refreshRgb();
-    } else {
-        avatar.setSpeech(status);
     }
 
     if (is_idle) {

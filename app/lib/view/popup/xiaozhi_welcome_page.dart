@@ -18,6 +18,7 @@ import '../../model/XiaoZhi/common_mcp_tool.dart';
 import '../../model/XiaoZhi/tts_list.dart';
 import '../../util/XiaoZhi_util.dart';
 import '../../util/mac_address_validator.dart';
+import '../../util/conversation_style.dart';
 import '../../util/value_constant.dart';
 
 class XiaoZhiWelcomePage extends StatefulWidget {
@@ -276,6 +277,9 @@ class XiaoZhiEditAgentModel extends GetxController {
     ttsPitch.value = 0;
     asrSpeed.value = "normal";
     memoryType.value = "SHORT_TERM";
+    characterController.text = naturalConversationCharacterForLanguage(
+      selectedLanguage.value,
+    );
     if (modelList.isNotEmpty) selectedModel.value = modelList.first;
     update();
   }
@@ -635,6 +639,22 @@ class _XiaoZhiWelcomePageState extends State<XiaoZhiWelcomePage> {
                                 color: CupertinoColors.systemGroupedBackground
                                     .resolveFrom(context),
                                 borderRadius: .circular(15),
+                              ),
+                            ),
+                          ),
+                          CupertinoListTile(
+                            title: SizedBox(
+                              width: double.infinity,
+                              child: CupertinoButton.tinted(
+                                onPressed: () {
+                                  model.characterController.text =
+                                      naturalConversationCharacterForLanguage(
+                                        model.selectedLanguage.value,
+                                      );
+                                },
+                                child: const Text(
+                                  "Use natural conversation preset",
+                                ),
                               ),
                             ),
                           ),

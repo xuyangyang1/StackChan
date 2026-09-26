@@ -9,6 +9,7 @@ import 'package:stack_chan/app_state.dart';
 import 'package:stack_chan/model/XiaoZhi/agent.dart';
 import 'package:stack_chan/model/XiaoZhi/tts_list.dart';
 import 'package:stack_chan/model/XiaoZhi/XiaoZhi_model.dart';
+import 'package:stack_chan/util/conversation_style.dart';
 import 'package:stack_chan/util/value_constant.dart';
 
 import '../../model/XiaoZhi/agent_create.dart';
@@ -168,6 +169,9 @@ class EditAgentModel extends GetxController {
     ttsPitch.value = 0;
     asrSpeed.value = "normal";
     memoryType.value = "SHORT_TERM";
+    characterController.text = naturalConversationCharacterForLanguage(
+      selectedLanguage.value,
+    );
     if (modelList.isNotEmpty) selectedModel.value = modelList.first;
     update();
   }
@@ -370,6 +374,18 @@ class _EditAgentState extends State<EditAgent> {
                           "Please provide the character description (max 2000 characters).",
                       //(words→characters)
                       maxLines: 4,
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CupertinoButton.tinted(
+                        onPressed: () {
+                          model.characterController.text =
+                              naturalConversationCharacterForLanguage(
+                                model.selectedLanguage.value,
+                              );
+                        },
+                        child: const Text("Use natural conversation preset"),
+                      ),
                     ),
                     _buildInputItem(
                       title: "Short-term Memory Content", //translated comment
