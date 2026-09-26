@@ -367,31 +367,31 @@ const char *presence_display_speech(const char *content) {
 }
 
 int presence_speech_max_width(void) {
-    return 296;
+    return 320;
 }
 
 int presence_speech_bubble_height(void) {
-    return 72;
+    return 88;
 }
 
 int presence_speech_wrap(void) {
-    return 0;
+    return 1;
 }
 
 int presence_speech_radius(void) {
-    return 16;
+    return 0;
 }
 
 int presence_speech_pad_x(void) {
-    return 18;
-}
-
-int presence_speech_pad_y(void) {
     return 12;
 }
 
+int presence_speech_pad_y(void) {
+    return 6;
+}
+
 int presence_speech_container_y(void) {
-    return 86;
+    return 0;
 }
 
 int presence_speech_container_h(void) {
