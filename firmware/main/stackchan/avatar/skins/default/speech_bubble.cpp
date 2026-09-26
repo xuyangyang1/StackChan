@@ -47,12 +47,11 @@ DefaultSpeechBubble::DefaultSpeechBubble(lv_obj_t* parent, lv_color_t primaryCol
     _text = std::make_unique<Label>(_bubble->get());
     _text->setTextColor(secondaryColor);
     _text->setTextFont(font);
-    _text->setTextAlign(LV_TEXT_ALIGN_CENTER);
+    _text->setTextAlign(LV_TEXT_ALIGN_LEFT);
     _text->setAlign(LV_ALIGN_CENTER);
     _text->setPos(0, 0);
     _text->setWidth(presence_speech_max_width() - presence_speech_pad_x() * 2);
-    _text->setHeight(presence_speech_bubble_height() - presence_speech_pad_y() * 2);
-    _text->setLongMode(presence_speech_wrap() ? LV_LABEL_LONG_MODE_WRAP : LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+    _text->setLongMode(LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
 
     clearSpeech();
 }
@@ -74,14 +73,15 @@ void DefaultSpeechBubble::setSpeech(std::string_view text)
 
     _text->setText(text);
     const int pad_x = presence_speech_pad_x();
-    const int pad_y = presence_speech_pad_y();
     const int width = presence_speech_fixed_card() ? presence_speech_max_width() : presence_speech_max_width();
     _bubble->setSize(width, presence_speech_bubble_height());
     _bubble->setX(0);
     _text->setWidth(width - pad_x * 2);
-    _text->setHeight(presence_speech_bubble_height() - pad_y * 2);
-    _text->setTextAlign(LV_TEXT_ALIGN_CENTER);
-    _text->setAlign(LV_ALIGN_CENTER);
+    _text->setLongMode(LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+    _text->setTextAlign(LV_TEXT_ALIGN_LEFT);
+    if (const lv_font_t* font = _text->getTextFont()) {
+        _text->setHeight(lv_font_get_line_height(font));
+    }
     setVisible(true);
 }
 

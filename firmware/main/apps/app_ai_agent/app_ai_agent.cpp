@@ -19,12 +19,11 @@ using namespace smooth_ui_toolkit::lvgl_cpp;
 AppAiAgent::AppAiAgent()
 {
     // Configure App name
-    setAppInfo().name = presence_launcher_name();
-    // Configure App icon
-    static auto icon  = assets::get_image(presence_launcher_icon());
+    setAppInfo().name = presence_home_title();
+    // Home card uses the cropped design. Opening it still starts the live agent.
+    static auto icon  = assets::get_image(presence_home_asset());
     setAppInfo().icon = (void*)&icon;
-    // Configure App theme color
-    static uint32_t theme_color = 0x33CC99;
+    static uint32_t theme_color = presence_home_theme_color();
     setAppInfo().userData       = (void*)&theme_color;
 }
 

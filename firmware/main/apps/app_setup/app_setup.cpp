@@ -19,12 +19,10 @@ using namespace setup_workers;
 AppSetup::AppSetup()
 {
     // 配置 App 名
-    setAppInfo().name = "设置";
-    // 配置 App 图标
-    static auto icon  = assets::get_image("icon_setup.bin");
+    setAppInfo().name = presence_settings_title();
+    static auto icon  = assets::get_image(presence_settings_asset());
     setAppInfo().icon = (void*)&icon;
-    // 配置 App 主题颜色
-    static uint32_t theme_color = 0xB3B3B3;
+    static uint32_t theme_color = presence_settings_theme_color();
     setAppInfo().userData       = (void*)&theme_color;
 }
 

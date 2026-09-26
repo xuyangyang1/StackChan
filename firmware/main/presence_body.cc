@@ -247,6 +247,86 @@ const char *presence_launcher_icon(void) {
     return "icon_xiaoling.png";
 }
 
+const char *presence_home_asset(void) {
+    return "xiaoling_robot_home.png";
+}
+
+const char *presence_home_title(void) {
+    return "小零机器人";
+}
+
+const char *presence_home_subtitle(void) {
+    return "AI 助手";
+}
+
+int presence_screen_width(void) {
+    return 320;
+}
+
+int presence_screen_height(void) {
+    return 240;
+}
+
+int presence_home_card_width(void) {
+    return 320;
+}
+
+int presence_home_card_height(void) {
+    return 240;
+}
+
+int presence_home_card_offset_y(void) {
+    return 0;
+}
+
+int presence_home_arrow_width(void) {
+    return 28;
+}
+
+int presence_home_arrow_height(void) {
+    return 64;
+}
+
+int presence_home_arrow_offset_x(void) {
+    return 146;
+}
+
+int presence_home_dot_size(void) {
+    return 4;
+}
+
+int presence_home_dot_active(void) {
+    return 7;
+}
+
+int presence_home_dot_offset_y(void) {
+    return 108;
+}
+
+unsigned presence_home_theme_color(void) {
+    return 0x2CEFF1;
+}
+
+const char *presence_settings_asset(void) {
+    return "settings_home.png";
+}
+
+const char *presence_settings_title(void) {
+    return "设置";
+}
+
+const char *presence_settings_subtitle(void) {
+    return "系统设置";
+}
+
+unsigned presence_settings_theme_color(void) {
+    return 0x016ADF;
+}
+
+int presence_launcher_card(const char *name) {
+    return same_name(name, presence_home_title()) || same_name(name, presence_settings_title());
+}
+
 const char *presence_setup_look_for_me(void) {
     return "请在商户端找到我\n开始设置";
 }

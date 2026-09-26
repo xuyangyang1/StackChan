@@ -10,6 +10,7 @@
 #include <hal/hal.h>
 #include <cstdint>
 #include <vector>
+#include "presence_body.h"
 
 LV_FONT_DECLARE(BUILTIN_TEXT_FONT);
 
@@ -89,9 +90,7 @@ private:
 /* -------------------------------------------------------------------------- */
 class PageIndicator {
 public:
-    const int dot_size     = 8;
-    const int dot_size_big = 14;
-    const int dot_gap      = 16;
+    const int dot_gap = 12;
 
     void init(int pageNum, int pageGap, lv_obj_t* parent, int posX, int posY)
     {
@@ -105,8 +104,9 @@ public:
         _panel->setPadding(0, 0, 24, 24);
         _panel->setPos(posX, posY);
         _panel->setBorderWidth(0);
-        _panel->setHeight(24);
-        _panel->setWidth((pageNum * dot_size) + (pageNum - 1) * (dot_gap - dot_size) + 24 * 2);
+        const int dot = presence_home_dot_size();
+        _panel->setHeight(presence_home_dot_active() + 8);
+        _panel->setWidth((pageNum * dot) + (pageNum - 1) * (dot_gap - dot) + 16 * 2);
         _panel->setBgOpa(0);
 
         for (int i = 0; i < pageNum; i++) {
@@ -116,7 +116,7 @@ public:
             _dots.back()->setBgColor(lv_color_hex(0xFFFFFF));
             _dots.back()->removeFlag(LV_OBJ_FLAG_SCROLLABLE);
             _dots.back()->setRadius(LV_RADIUS_CIRCLE);
-            _dots.back()->setSize(dot_size, dot_size);
+            _dots.back()->setSize(presence_home_dot_size(), presence_home_dot_size());
             _dots.back()->setBorderWidth(0);
         }
 
@@ -165,10 +165,10 @@ private:
     {
         for (int i = 0; i < _page_num; i++) {
             if (i == _current_index) {
-                _dots[i]->setSize(dot_size_big, dot_size_big);
+                _dots[i]->setSize(presence_home_dot_active(), presence_home_dot_active());
                 _dots[i]->setOpa(255);
             } else {
-                _dots[i]->setSize(dot_size, dot_size);
+                _dots[i]->setSize(presence_home_dot_size(), presence_home_dot_size());
                 _dots[i]->setOpa(128);
             }
         }
@@ -223,6 +223,9 @@ public:
         _label->setText(_icon_label_texts[index]);
         _label->setPos(0, visible_pos_y);
         _pos_y_anim->teleport(visible_pos_y);
+        if (presence_launcher_card(_icon_label_texts[index].c_str())) {
+            _label->setOpa(0);
+        }
     }
 
     void update(int scrollValue)
@@ -272,6 +275,9 @@ public:
             _label->setOpa(233 * fade_ratio);
         } else if (should_be_visible) {
             _label->setOpa(233);
+        }
+        if (presence_launcher_card(_icon_label_texts[_current_index].c_str())) {
+            _label->setOpa(0);
         }
     }
 
@@ -337,11 +343,16 @@ void LauncherView::init(std::vector<mooncake::AppProps_t> appPorps)
     // Loop multiple times to create fake infinite scroll
     for (int loop = 0; loop < _loop_copies; loop++) {
         for (const auto& props : appPorps) {
+            const bool home_card = presence_launcher_card(props.info.name.c_str());
+            const int panel_w    = home_card ? presence_home_card_width() : 190;
+            const int panel_h    = home_card ? presence_home_card_height() : 160;
+            const int panel_y    = home_card ? presence_home_card_offset_y() : icon_y;
+
             // Icon panel
             _icon_panels.push_back(std::make_unique<Container>(_panel->get()));
             _icon_panels.back()->setAlign(LV_ALIGN_CENTER);
-            _icon_panels.back()->setSize(190, 160);
-            _icon_panels.back()->setPos(icon_x, icon_y);
+            _icon_panels.back()->setSize(panel_w, panel_h);
+            _icon_panels.back()->setPos(icon_x, panel_y);
             _icon_panels.back()->setBorderWidth(0);
             _icon_panels.back()->removeFlag(LV_OBJ_FLAG_SCROLLABLE);
             _icon_panels.back()->setBgOpa(0);
@@ -368,6 +379,10 @@ void LauncherView::init(std::vector<mooncake::AppProps_t> appPorps)
                 _icon_images.push_back(std::make_unique<Image>(_icon_panels.back()->get()));
                 _icon_images.back()->setSrc(props.info.icon);
                 _icon_images.back()->setAlign(LV_ALIGN_CENTER);
+                if (home_card) {
+                    _icon_images.back()->setSize(panel_w, panel_h);
+                    lv_image_set_inner_align(_icon_images.back()->get(), LV_IMAGE_ALIGN_CONTAIN);
+                }
             }
 
             icon_x += _icon_gap;
@@ -389,8 +404,8 @@ void LauncherView::init(std::vector<mooncake::AppProps_t> appPorps)
     // Go left indicator
     _lr_indicator_panels.push_back(std::make_unique<Container>(_panel->get()));
     _lr_indicator_panels.back()->setAlign(LV_ALIGN_CENTER);
-    _lr_indicator_panels.back()->setSize(52, 160);
-    _lr_indicator_panels.back()->setPos(-134, 0);
+    _lr_indicator_panels.back()->setSize(presence_home_arrow_width(), presence_home_arrow_height());
+    _lr_indicator_panels.back()->setPos(-presence_home_arrow_offset_x(), 0);
     _lr_indicator_panels.back()->setBorderWidth(0);
     _lr_indicator_panels.back()->addFlag(LV_OBJ_FLAG_FLOATING);
     _lr_indicator_panels.back()->removeFlag(LV_OBJ_FLAG_SCROLLABLE);
@@ -400,13 +415,15 @@ void LauncherView::init(std::vector<mooncake::AppProps_t> appPorps)
     _lr_indicators_images.push_back(std::make_unique<Image>(_lr_indicator_panels.back()->get()));
     static auto icon_indicator_left = assets::get_image("icon_indicator_left.bin");
     _lr_indicators_images.back()->setSrc(&icon_indicator_left);
+    _lr_indicators_images.back()->setSize(12, 20);
+    lv_image_set_inner_align(_lr_indicators_images.back()->get(), LV_IMAGE_ALIGN_CONTAIN);
     _lr_indicators_images.back()->align(LV_ALIGN_CENTER, 0, 0);
 
     // Go right indicator
     _lr_indicator_panels.push_back(std::make_unique<Container>(_panel->get()));
     _lr_indicator_panels.back()->setAlign(LV_ALIGN_CENTER);
-    _lr_indicator_panels.back()->setSize(52, 160);
-    _lr_indicator_panels.back()->setPos(134, 0);
+    _lr_indicator_panels.back()->setSize(presence_home_arrow_width(), presence_home_arrow_height());
+    _lr_indicator_panels.back()->setPos(presence_home_arrow_offset_x(), 0);
     _lr_indicator_panels.back()->setBorderWidth(0);
     _lr_indicator_panels.back()->addFlag(LV_OBJ_FLAG_FLOATING);
     _lr_indicator_panels.back()->removeFlag(LV_OBJ_FLAG_SCROLLABLE);
@@ -416,6 +433,8 @@ void LauncherView::init(std::vector<mooncake::AppProps_t> appPorps)
     _lr_indicators_images.push_back(std::make_unique<Image>(_lr_indicator_panels.back()->get()));
     static auto icon_indicator_right = assets::get_image("icon_indicator_right.bin");
     _lr_indicators_images.back()->setSrc(&icon_indicator_right);
+    _lr_indicators_images.back()->setSize(12, 20);
+    lv_image_set_inner_align(_lr_indicators_images.back()->get(), LV_IMAGE_ALIGN_CONTAIN);
     _lr_indicators_images.back()->align(LV_ALIGN_CENTER, 0, 0);
 
     /* ---------------------------- Dynamic bg color ---------------------------- */
@@ -431,7 +450,7 @@ void LauncherView::init(std::vector<mooncake::AppProps_t> appPorps)
     /* ------------------------------ Page indicator ---------------------------- */
     _page_indicator = std::make_unique<PageIndicator>();
     // Page indicator only needs to know the real app count (N), not N * copies
-    _page_indicator->init(appPorps.size(), _icon_gap, _panel->get(), 0, 103);
+    _page_indicator->init(appPorps.size(), _icon_gap, _panel->get(), 0, presence_home_dot_offset_y());
 
     /* --------------------------- Dynamic icon label --------------------------- */
     _dynamic_icon_label = std::make_unique<DynamicIconLabel>();
