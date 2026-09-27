@@ -335,6 +335,16 @@ const char *presence_setup_app_title(void) {
     return "配网设置";
 }
 
+const char *presence_setup_wifi_label(void) { return "连接无线网"; }
+const char *presence_setup_brightness_label(void) { return "屏幕亮度"; }
+const char *presence_setup_volume_label(void) { return "扬声器音量"; }
+const char *presence_setup_timezone_label(void) { return "时区"; }
+const char *presence_setup_servo_label(void) { return "舵机校准"; }
+const char *presence_setup_mic_label(void) { return "麦克风测试"; }
+const char *presence_setup_light_label(void) { return "灯带测试"; }
+const char *presence_setup_version_label(void) { return "固件版本"; }
+const char *presence_setup_confirm_label(void) { return "确定"; }
+
 const char *presence_setup_welcome(void) {
     return "欢迎使用小零机器人\n开始设置";
 }
@@ -371,10 +381,14 @@ int presence_speech_max_width(void) {
 }
 
 int presence_speech_bubble_height(void) {
-    return 88;
+    return 48;
 }
 
 int presence_speech_wrap(void) {
+    return 0;
+}
+
+int presence_speech_scroll(void) {
     return 1;
 }
 
@@ -395,7 +409,7 @@ int presence_speech_container_y(void) {
 }
 
 int presence_speech_container_h(void) {
-    return 88;
+    return 48;
 }
 
 int presence_speech_show_arrow(void) {

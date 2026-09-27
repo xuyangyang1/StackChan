@@ -18,7 +18,7 @@ file(GLOB_RECURSE STACK_CHAN_SOURCES
 set(STACK_CHAN_INCLUDE_DIRS 
     "."
 )
-list(APPEND STACK_CHAN_SOURCES main.cpp presence_body.cc)
+list(APPEND STACK_CHAN_SOURCES main.cpp presence_body.cc apps/app_setup/view/font_setup_14.c)
 
 # Define source files
 set(SOURCES "audio/audio_codec.cc"

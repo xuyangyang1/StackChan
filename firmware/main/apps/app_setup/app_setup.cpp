@@ -44,7 +44,7 @@ void AppSetup::onOpen()
     _menu_sections = {
         {
             "无线网络",
-            {{"更换 Wi-Fi",
+            {{presence_setup_wifi_label(),
               [&]() {
                   _destroy_menu    = true;
                   _need_warm_reset = true;
@@ -53,17 +53,17 @@ void AppSetup::onOpen()
         },
         {
             "设备",
-            {{"亮度",
+            {{presence_setup_brightness_label(),
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<BrightnessSetupWorker>();
               }},
-             {"音量",
+             {presence_setup_volume_label(),
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<VolumeSetupWorker>();
               }},
-             {"时区",
+             {presence_setup_timezone_label(),
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<TimezoneWorker>();
@@ -86,17 +86,17 @@ void AppSetup::onOpen()
         },
         {
             "硬件检测",
-            {{"舵机",
+            {{presence_setup_servo_label(),
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<ZeroCalibrationWorker>();
               }},
-             {"麦克风",
+             {presence_setup_mic_label(),
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<MicTestWorker>();
               }},
-             {"灯带",
+             {presence_setup_light_label(),
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<RgbTestWorker>();
@@ -114,7 +114,7 @@ void AppSetup::onOpen()
         {
             "固件",
             {
-                {fmt::format("版本  {}", common::FirmwareVersion),
+                {fmt::format("{}  {}", presence_setup_version_label(), common::FirmwareVersion),
                  [&]() {
                      _magic_count++;
                      if (_magic_count >= 10) {

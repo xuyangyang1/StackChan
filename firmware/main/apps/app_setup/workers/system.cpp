@@ -4,7 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 #include "workers.h"
+#include <presence_body.h>
 #include <stackchan/stackchan.h>
+
+LV_FONT_DECLARE(font_setup_14);
 #include <apps/common/toast/toast.h>
 #include <mooncake_log.h>
 #include <assets/assets.h>
@@ -23,15 +26,15 @@ struct TimezoneOption_t {
 };
 
 static const std::vector<TimezoneOption_t> _timezone_list = {
-    {"Baker Is. (UTC-12)", "BIT12"},  {"Midway Island (UTC-11)", "SST11"}, {"Honolulu (UTC-10)", "HST10"},
-    {"Alaska (UTC-9)", "AKST9"},      {"Los Angeles (UTC-8)", "PST8"},     {"Denver (UTC-7)", "MST7"},
-    {"Chicago (UTC-6)", "CST6"},      {"New York (UTC-5)", "EST5"},        {"Halifax (UTC-4)", "AST4"},
-    {"S.Paulo (UTC-3)", "BRT3"},      {"S.Georgia (UTC-2)", "GST2"},       {"Azores (UTC-1)", "AZOT1"},
-    {"London (UTC+0)", "GMT0"},       {"Berlin (UTC+1)", "CET-1"},         {"Cairo (UTC+2)", "EET-2"},
-    {"Moscow (UTC+3)", "MSK-3"},      {"Dubai (UTC+4)", "GST-4"},          {"Karachi (UTC+5)", "PKT-5"},
-    {"Dhaka (UTC+6)", "BST-6"},       {"Bangkok (UTC+7)", "ICT-7"},        {"Beijing (UTC+8)", "CST-8"},
-    {"Tokyo (UTC+9)", "JST-9"},       {"Sydney (UTC+10)", "AEST-10"},      {"Noumea (UTC+11)", "SBT-11"},
-    {"Auckland (UTC+12)", "NZST-12"}, {"Fiji (UTC+13)", "FJT-13"},         {"Line Islands (UTC+14)", "LINT-14"}};
+    {"贝克岛 UTC-12", "BIT12"},  {"中途岛 UTC-11", "SST11"}, {"檀香山 UTC-10", "HST10"},
+    {"阿拉斯加 UTC-9", "AKST9"}, {"洛杉矶 UTC-8", "PST8"},   {"丹佛 UTC-7", "MST7"},
+    {"芝加哥 UTC-6", "CST6"},    {"纽约 UTC-5", "EST5"},     {"哈利法克斯 UTC-4", "AST4"},
+    {"圣保罗 UTC-3", "BRT3"},    {"南乔治亚 UTC-2", "GST2"}, {"亚速尔 UTC-1", "AZOT1"},
+    {"伦敦 UTC+0", "GMT0"},      {"柏林 UTC+1", "CET-1"},    {"开罗 UTC+2", "EET-2"},
+    {"莫斯科 UTC+3", "MSK-3"},   {"迪拜 UTC+4", "GST-4"},    {"卡拉奇 UTC+5", "PKT-5"},
+    {"达卡 UTC+6", "BST-6"},     {"曼谷 UTC+7", "ICT-7"},    {"北京 UTC+8", "CST-8"},
+    {"东京 UTC+9", "JST-9"},     {"悉尼 UTC+10", "AEST-10"}, {"努美阿 UTC+11", "SBT-11"},
+    {"奥克兰 UTC+12", "NZST-12"}, {"斐济 UTC+13", "FJT-13"}, {"莱恩群岛 UTC+14", "LINT-14"}};
 
 VolumeSetupWorker::VolumeSetupWorker()
 {
@@ -52,38 +55,45 @@ VolumeSetupWorker::VolumeSetupWorker()
     }
 
     _panel = std::make_unique<Container>(lv_screen_active());
-    _panel->setBgColor(lv_color_hex(0xEDF4FF));
-    _panel->align(LV_ALIGN_CENTER, 0, 0);
-    _panel->setBorderWidth(0);
     _panel->setSize(320, 240);
+    _panel->setPos(0, 0);
+    _panel->setBgColor(lv_color_hex(0xEDF4FF));
+    _panel->setBorderWidth(0);
     _panel->setRadius(0);
     _panel->removeFlag(LV_OBJ_FLAG_SCROLLABLE);
 
     _label_volume = std::make_unique<Label>(*_panel);
-    _label_volume->setText(fmt::format("{}%", _volume_levels[current_index]));
-    _label_volume->setTextFont(&lv_font_montserrat_24);
+    _label_volume->setText(fmt::format("{}  {}%", presence_setup_volume_label(), _volume_levels[current_index]));
+    _label_volume->setTextFont(&font_setup_14);
     _label_volume->setTextColor(lv_color_hex(0x26206A));
-    _label_volume->align(LV_ALIGN_CENTER, 0, -70);
+    _label_volume->setWidth(280);
+    _label_volume->setLongMode(LV_LABEL_LONG_MODE_CLIP);
+    _label_volume->setTextAlign(LV_TEXT_ALIGN_CENTER);
+    _label_volume->align(LV_ALIGN_CENTER, 0, -62);
 
     _slider = std::make_unique<Slider>(*_panel);
-    _slider->align(LV_ALIGN_CENTER, 0, -12);
+    _slider->align(LV_ALIGN_CENTER, 0, -8);
     _slider->setRange(0, _volume_levels.size() - 1);
-    _slider->setSize(250, 18);
+    _slider->setSize(240, 14);
     _slider->setBgColor(lv_color_hex(0x615B9E), LV_PART_KNOB);
     _slider->setBgColor(lv_color_hex(0x615B9E), LV_PART_INDICATOR);
     _slider->setBgColor(lv_color_hex(0xB8D3FD), LV_PART_MAIN);
     _slider->setBgOpa(255);
     _slider->setValue(current_index);
     _slider->onValueChanged().connect([this](int32_t value) {
-        _label_volume->setText(fmt::format("{}%", _volume_levels[value]));
+        _label_volume->setText(fmt::format("{}  {}%", presence_setup_volume_label(), _volume_levels[value]));
         _target_volume = _volume_levels[value];
     });
 
     _btn_confirm = std::make_unique<Button>(*_panel);
     apply_button_common_style(*_btn_confirm);
-    _btn_confirm->align(LV_ALIGN_CENTER, 0, 60);
-    _btn_confirm->setSize(150, 50);
-    _btn_confirm->label().setText("Confirm");
+    _btn_confirm->align(LV_ALIGN_CENTER, 0, 58);
+    _btn_confirm->setSize(148, 40);
+    _btn_confirm->label().setText(presence_setup_confirm_label());
+    _btn_confirm->label().setTextFont(&font_setup_14);
+    _btn_confirm->label().setWidth(120);
+    _btn_confirm->label().setLongMode(LV_LABEL_LONG_MODE_CLIP);
+    _btn_confirm->label().setTextAlign(LV_TEXT_ALIGN_CENTER);
     _btn_confirm->onClick().connect([this]() {
         _confirmed = true;
         _is_done   = true;
@@ -114,18 +124,18 @@ void VolumeSetupWorker::update()
 TimezoneWorker::TimezoneWorker()
 {
     _panel = std::make_unique<uitk::lvgl_cpp::Container>(lv_screen_active());
+    _panel->setSize(320, 240);
+    _panel->setPos(0, 0);
     _panel->setPadding(0, 0, 0, 0);
     _panel->setBgColor(lv_color_hex(0xEDF4FF));
-    _panel->align(LV_ALIGN_CENTER, 0, 0);
     _panel->setBorderWidth(0);
-    _panel->setSize(320, 240);
     _panel->setRadius(0);
 
     _label = std::make_unique<uitk::lvgl_cpp::Label>(_panel->get());
-    _label->setText("Time Zone");
-    _label->setTextFont(&lv_font_montserrat_16);
+    _label->setText(presence_setup_timezone_label());
+    _label->setTextFont(&font_setup_14);
     _label->setTextColor(lv_color_hex(0x26206A));
-    _label->align(LV_ALIGN_CENTER, 0, -100);
+    _label->align(LV_ALIGN_TOP_MID, 0, 8);
 
     // Timezone list
     std::string options;
@@ -138,10 +148,10 @@ TimezoneWorker::TimezoneWorker()
     }
 
     _roller = std::make_unique<uitk::lvgl_cpp::Roller>(_panel->get());
-    _roller->setSize(210, 188);
+    _roller->setSize(250, 148);
     _roller->setOptions(options.c_str());
-    _roller->align(LV_ALIGN_CENTER, -40, 16);
-    _roller->setTextFont(&lv_font_montserrat_16);
+    _roller->align(LV_ALIGN_CENTER, 0, 4);
+    _roller->setTextFont(&font_setup_14);
     _roller->setTextColor(lv_color_hex(0x26206A));
     _roller->setBgColor(lv_color_hex(0xB8D3FD));
     _roller->setRadius(18);
@@ -157,21 +167,24 @@ TimezoneWorker::TimezoneWorker()
             _roller->setSelected(i, LV_ANIM_OFF);
             utc0_index = -1;
             break;
-        } else if (_timezone_list[i].tz_posix == "GMT0") {
+        } else if (_timezone_list[i].tz_posix == "CST-8") {
             utc0_index = i;
         }
     }
 
     if (utc0_index >= 0) {
-        // Default to UTC+0
         _roller->setSelected(utc0_index, LV_ANIM_OFF);
     }
 
     _btn_confirm = std::make_unique<uitk::lvgl_cpp::Button>(_panel->get());
-    _btn_confirm->label().setText("ok");
-    _btn_confirm->label().setTextFont(&lv_font_montserrat_24);
-    _btn_confirm->setSize(60, 110);
-    _btn_confirm->align(LV_ALIGN_CENTER, 115, 40);
+    _btn_confirm->label().setText(presence_setup_confirm_label());
+    _btn_confirm->label().setTextFont(&font_setup_14);
+    _btn_confirm->label().setTextColor(lv_color_hex(0xFFFFFF));
+    _btn_confirm->label().setWidth(80);
+    _btn_confirm->label().setLongMode(LV_LABEL_LONG_MODE_CLIP);
+    _btn_confirm->label().setTextAlign(LV_TEXT_ALIGN_CENTER);
+    _btn_confirm->setSize(120, 36);
+    _btn_confirm->align(LV_ALIGN_BOTTOM_MID, 0, -8);
     _btn_confirm->onClick().connect([&]() { _confirm_flag = true; });
     _btn_confirm->setRadius(18);
     _btn_confirm->setShadowWidth(0);

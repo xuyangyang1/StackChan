@@ -75,6 +75,27 @@ void DefaultSpeechBubble::setSpeech(std::string_view text)
     const int pad_y = presence_speech_pad_y();
     const int width = presence_speech_max_width();
     const int text_width = width - pad_x * 2;
+    const lv_font_t* font = _text->getTextFont();
+    const int line = font ? lv_font_get_line_height(font) : 25;
+    if (presence_speech_scroll() && !presence_speech_wrap()) {
+        const int bubble_h = presence_speech_bubble_height();
+        const int scroll_text_h = bubble_h - pad_y * 2;
+        _text->setLongMode(LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+        _text->setWidth(text_width);
+        _text->setHeight(scroll_text_h > line ? line : scroll_text_h);
+        _text->setText(text);
+        _text->setTextAlign(LV_TEXT_ALIGN_LEFT);
+        _text->setAlign(LV_ALIGN_LEFT_MID);
+        _container->setAlign(LV_ALIGN_BOTTOM_MID);
+        _container->setPos(0, 0);
+        _container->setSize(presence_screen_width(), bubble_h);
+        _bubble->setAlign(LV_ALIGN_BOTTOM_MID);
+        _bubble->setPos(0, 0);
+        _bubble->setSize(width, bubble_h);
+        lv_obj_move_foreground(_container->get());
+        setVisible(true);
+        return;
+    }
     _text->setLongMode(LV_LABEL_LONG_MODE_WRAP);
     _text->setWidth(text_width);
     _text->setHeight(LV_SIZE_CONTENT);
@@ -82,8 +103,6 @@ void DefaultSpeechBubble::setSpeech(std::string_view text)
     _text->setTextAlign(LV_TEXT_ALIGN_LEFT);
     lv_obj_update_layout(_text->get());
     int text_h = lv_obj_get_height(_text->get());
-    const lv_font_t* font = _text->getTextFont();
-    const int line = font ? lv_font_get_line_height(font) : 25;
     if (text_h < line) {
         text_h = line;
     }

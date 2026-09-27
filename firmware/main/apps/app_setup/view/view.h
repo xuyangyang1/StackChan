@@ -36,7 +36,7 @@ private:
     int _pending_section_index = -1;
     int _pending_item_index    = -1;
 
-    void create_selection_label(int x, int y, std::string_view text);
+    void create_selection_label(int y, std::string_view text);
     void create_item_button(int y, const MenuItem& item, int section_idx, int item_idx);
 };
 

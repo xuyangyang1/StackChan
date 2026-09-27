@@ -19,6 +19,10 @@
 #include <algorithm>
 #include "stackchan_camera.h"
 #include "hal_bridge.h"
+#include "jpg/image_to_jpeg.h"
+
+#include <esp_heap_caps.h>
+#include <mbedtls/base64.h>
 
 #define TAG "M5Stack-StackChan-Board"
 
@@ -619,6 +623,47 @@ public:
     virtual Camera* GetCamera() override
     {
         return camera_;
+    }
+
+    virtual bool CapturePresenceSnapshot(std::string& jpeg_base64) override
+    {
+        if (camera_ == nullptr || !camera_->Capture()) {
+            return false;
+        }
+        const uint8_t* frame = camera_->GetFrameData();
+        size_t frame_len = camera_->GetFrameSize();
+        int width = camera_->GetFrameWidth();
+        int height = camera_->GetFrameHeight();
+        if (frame == nullptr || frame_len == 0 || width <= 0 || height <= 0) {
+            return false;
+        }
+        uint8_t* jpeg = nullptr;
+        size_t jpeg_len = 0;
+        if (!image_to_jpeg(const_cast<uint8_t*>(frame), frame_len, static_cast<uint16_t>(width),
+                static_cast<uint16_t>(height), static_cast<v4l2_pix_fmt_t>(camera_->GetFrameFormat()), 40, &jpeg,
+                &jpeg_len) ||
+            jpeg == nullptr || jpeg_len == 0 || jpeg_len > 700 * 1024) {
+            if (jpeg != nullptr) {
+                heap_caps_free(jpeg);
+            }
+            return false;
+        }
+        size_t encoded_len = 0;
+        mbedtls_base64_encode(nullptr, 0, &encoded_len, jpeg, jpeg_len);
+        jpeg_base64.assign(encoded_len, '\0');
+        size_t written = 0;
+        int encoded = mbedtls_base64_encode(reinterpret_cast<unsigned char*>(jpeg_base64.data()), jpeg_base64.size(),
+            &written, jpeg, jpeg_len);
+        heap_caps_free(jpeg);
+        if (encoded != 0 || written == 0) {
+            jpeg_base64.clear();
+            return false;
+        }
+        if (written > 0 && jpeg_base64[written - 1] == '\0') {
+            written -= 1;
+        }
+        jpeg_base64.resize(written);
+        return !jpeg_base64.empty();
     }
 
     virtual bool GetBatteryLevel(int& level, bool& charging, bool& discharging) override
